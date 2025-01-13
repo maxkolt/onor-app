@@ -7,6 +7,7 @@ const { adSubmissionScene } = require('./adSubmissionScene');
 const { UserModel, AdModel } = require('./models'); // Модели пользователя и объявлений
 
 // Конфигурация
+const webAppUrl = 'https://stalwart-pasca-6faadb.netlify.app';
 const BOT_TOKEN = '7372196140:AAH8tN_75EwoeONqB66aSiPRXEC3GeyzaHw';
 const MONGO_URI = 'mongodb+srv://12345kolt:a24T8vuO4qYtOykT@cluster0.skiud.mongodb.net/?retryWrites=true&w=majority&appName=onorcomm';
 
@@ -49,7 +50,7 @@ bot.command('start', (ctx) => {
   return ctx.reply(
     'Добро пожаловать! Используйте меню для управления:',
     Markup.keyboard([
-      ['Подать объявление'],
+      ['Подать объявление', 'Каталог'],
       ['Подписка', 'Помощь', 'Список объявлений'],
     ]).resize()
   );
@@ -86,9 +87,9 @@ bot.hears('Список объявлений', async (ctx) => {
       return ctx.reply('Пока нет никаких объявлений.');
     }
 
-    let message = 'Список объявлений:\n\n';
+    let message = 'Список объявлений:';
     ads.forEach((ad, index) => {
-      message += `${index + 1}. ${ad.text}\n`;
+      message += `${index + 1}. ${ad.text}`;
     });
 
     await ctx.reply(message);
@@ -157,25 +158,22 @@ bot.catch((err) => {
 // API: Получение всех объявлений
 app.get('/api/ads', async (req, res) => {
   try {
-    const ads = await AdModel.find().sort({ createdAt: -1 });
+    const ads = await AdModel.find().sort({ createdAt: -1 }); // Все объявления из базы
     res.json(ads);
-  } catch (error) {
-    console.error('Ошибка при получении объявлений:', error.message);
-    res.status(500).send('Ошибка сервера');
+  } catch (err) {
+    console.error('Ошибка при получении объявлений:', err.message);
+    res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
-
-// Пример API маршрута
-app.get('/api/data', (req, res) => {
-  res.json({ message: 'Это API ответ' });
-});
-
-// Сервируем статические файлы
-app.use(express.static(path.join(__dirname, 'build')));
-
-// Обработка всех маршрутов для SPA
-app.get('/*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+// Кнопка "Каталог" открывает веб-приложение
+bot.hears('Каталог', (ctx) => {
+  ctx.reply('Открываю каталог объявлений:', {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: 'Перейти к каталогу', web_app: { url: webAppUrl } }],
+      ],
+    },
+  });
 });
 
 
