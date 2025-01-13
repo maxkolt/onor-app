@@ -1,8 +1,10 @@
 const { Telegraf, Markup, Scenes, session } = require('telegraf');
 const mongoose = require('mongoose');
+const express = require('express');
+const cors = require('cors');
 const YookassaPaymentService = require('./paymentService');
 const { adSubmissionScene } = require('./adSubmissionScene');
-const { UserModel } = require('./models'); // Добавлена модель пользователя
+const { UserModel, AdModel } = require('./models'); // Модели пользователя и объявлений
 
 // Конфигурация
 const BOT_TOKEN = '7372196140:AAH8tN_75EwoeONqB66aSiPRXEC3GeyzaHw';
@@ -14,28 +16,10 @@ const paymentService = new YookassaPaymentService({
   shopId: '1011694',
 });
 
-// const webAppUrl = 'https://gregarious-phoenix-9a9fc7.netlify.app/';
-
-
-const express = require('express');
-const { AdModel } = require('./models'); // Импорт модели объявлений
-
+// Инициализация Express
 const app = express();
 app.use(express.json());
-const cors = require('cors');
 app.use(cors());
-
-// Маршрут для получения всех объявлений
-app.get('/api/ads', async (req, res) => {
-  try {
-    const ads = await AdModel.find().sort({ createdAt: -1 }); // Получаем объявления из MongoDB
-    res.json(ads); // Отправляем их в формате JSON
-  } catch (error) {
-    console.error('Ошибка при получении объявлений:', error.message);
-    res.status(500).send('Ошибка сервера');
-  }
-});
-
 
 // Проверка токена
 if (!BOT_TOKEN) {
@@ -52,7 +36,7 @@ mongoose
     process.exit(1);
   });
 
-// Инициализация бота
+// Инициализация Telegraf
 const bot = new Telegraf(BOT_TOKEN);
 
 // Middleware для работы сессиями и сценами
@@ -66,7 +50,7 @@ bot.command('start', (ctx) => {
     'Добро пожаловать! Используйте меню для управления:',
     Markup.keyboard([
       ['Подать объявление'],
-      ['Подписка', 'Помощь'],
+      ['Подписка', 'Помощь', 'Список объявлений'],
     ]).resize()
   );
 });
@@ -91,6 +75,27 @@ bot.hears('Подать объявление', async (ctx) => {
   }
 
   return ctx.scene.enter('adSubmission'); // Вход в сцену подачи объявления
+});
+
+// Обработка команды "Список объявлений"
+bot.hears('Список объявлений', async (ctx) => {
+  try {
+    const ads = await AdModel.find().sort({ createdAt: -1 });
+
+    if (ads.length === 0) {
+      return ctx.reply('Пока нет никаких объявлений.');
+    }
+
+    let message = 'Список объявлений:\n\n';
+    ads.forEach((ad, index) => {
+      message += `${index + 1}. ${ad.text}\n`;
+    });
+
+    await ctx.reply(message);
+  } catch (error) {
+    console.error('Ошибка при получении объявлений:', error.message);
+    await ctx.reply('Произошла ошибка при получении объявлений.');
+  }
 });
 
 // Обработка команды "Подписка"
@@ -149,5 +154,20 @@ bot.catch((err) => {
   console.error('Ошибка в работе бота:', err.message);
 });
 
-// Запуск бота
+// API: Получение всех объявлений
+app.get('/api/ads', async (req, res) => {
+  try {
+    const ads = await AdModel.find().sort({ createdAt: -1 });
+    res.json(ads);
+  } catch (error) {
+    console.error('Ошибка при получении объявлений:', error.message);
+    res.status(500).send('Ошибка сервера');
+  }
+});
+
+// Запуск сервера Express
+const PORT = 8000;
+app.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
+
+// Запуск Telegraf
 bot.launch().then(() => console.log('Бот запущен!'));
