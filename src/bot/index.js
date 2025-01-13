@@ -165,6 +165,20 @@ app.get('/api/ads', async (req, res) => {
   }
 });
 
+// Пример API маршрута
+app.get('/api/data', (req, res) => {
+  res.json({ message: 'Это API ответ' });
+});
+
+// Сервируем статические файлы
+app.use(express.static(path.join(__dirname, 'build')));
+
+// Обработка всех маршрутов для SPA
+app.get('/*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
+
 // Запуск сервера Express
 const PORT = 8000;
 app.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
