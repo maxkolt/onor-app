@@ -8,13 +8,15 @@ const UserSchema = new mongoose.Schema({
 });
 
 // Модель объявления
+
 const AdSchema = new mongoose.Schema({
-  img: { type: String },
-  userId: { type: String, required: true }, // Идентификатор пользователя
-  category: { type: String, required: true }, // Категория объявления
-  description: { type: String, required: true }, // Описание объявления
-  createdAt: { type: Date, default: Date.now }, // Дата создания
+  userId: { type: String, required: true },
+  category: { type: String, required: true },
+  description: { type: String, required: true },
+  img: { type: String }, // URL изображения
+  createdAt: { type: Date, default: Date.now },
 });
+
 
 const UserModel = mongoose.model('User', UserSchema);
 const AdModel = mongoose.model('Ad', AdSchema);

@@ -158,8 +158,8 @@ bot.catch((err) => {
 // API: Получение всех объявлений
 app.get('/api/ads', async (req, res) => {
   try {
-    const ads = await AdModel.find().sort({ createdAt: -1 }); // Все объявления из базы
-    res.json(ads);
+    const ads = await AdModel.find().sort({ createdAt: -1 }); // Получаем все объявления
+    res.json(ads); // Отправляем их клиенту
   } catch (err) {
     console.error('Ошибка при получении объявлений:', err.message);
     res.status(500).json({ error: 'Ошибка сервера' });

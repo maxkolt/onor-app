@@ -1,30 +1,27 @@
 import React, { useEffect, useState } from 'react';
+import ProductItem from './ProductList';
+import ProductList from "./ProductList";
 
-function ProductList() {
+function AdsList() {
   const [ads, setAds] = useState([]);
 
   useEffect(() => {
-    // Запрос к вашему серверу Express
-    fetch('http://localhost:8000/api/ads') // Или замените localhost на ваш продакшн сервер
+    fetch('http://localhost:8000/api/ads') // Замените на ваш URL сервера
       .then((response) => response.json())
       .then((data) => setAds(data))
-      .catch((err) => console.error('Ошибка загрузки объявлений:', err));
+      .catch((err) => console.error('Ошибка при загрузке объявлений:', err));
   }, []);
 
   return (
     <div>
       <h1>Каталог объявлений</h1>
-      <ul>
-        {ads.map((ad, index) => (
-          <li key={index}>
-            <strong>Категория:</strong> {ad.category} <br />
-            <strong>Описание:</strong> {ad.description} <br />
-            <small>Добавлено: {new Date(ad.createdAt).toLocaleString()}</small>
-          </li>
+      <div className="ads-list">
+        {ads.map((ad) => (
+          <ProductList key={ad._id} product={ad} />
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
 
-export default ProductList;
+export default AdsList;
